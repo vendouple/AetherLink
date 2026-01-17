@@ -1,0 +1,31 @@
+package com.vendouple.aetherlink;
+
+public class AetherMessages {
+    public Chat chat = new Chat();
+    public Linking linking = new Linking();
+    public Info info = new Info();
+
+    public static class Chat {
+        public String hytaleToDiscord = "**{HytalePlayer}**: {Message}";
+        public String discordToHytale = "§9[Discord] §7[{TopDiscordRoleInitials1}] §f{DiscordName}: {Message}";
+        public String discordToDiscord = "**[{SourceChannel}]** {DiscordName}: {Message}";
+        public String serverStart = ":white_check_mark: **Server has started!**";
+        public String serverStop = ":octagonal_sign: **Server has stopped.**";
+        public String join = ":arrow_right: **{HytalePlayer}** joined the server.";
+        public String leave = ":arrow_left: **{HytalePlayer}** left the server.";
+        public String death = ":skull: **{HytalePlayer}** died. Reason: {DeathReason}";
+        public String advancement = ":trophy: **{HytalePlayer}** just unlocked **{ZoneUnlock}**!";
+    }
+
+    public static class Linking {
+        public String codeGenerated = "Your linking code is **{Code}**. Run `/link {Code}` in Hytale. Expires in 5 minutes.";
+        public String linkSuccess = "Successfully linked with **{HytalePlayer}**!";
+        public String alreadyLinked = "You are already linked to **{HytalePlayer}**.";
+        public String invalidCode = "Invalid or expired code.";
+    }
+
+    public static class Info {
+        public String topicUpdater = "Online: {PlayerCount}/{MaxPlayers} | Uptime: {Uptime}";
+        public String presence = "Playing Hytale with {PlayerCount} players";
+    }
+}
