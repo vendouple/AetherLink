@@ -25,7 +25,9 @@ jobs:
           cache: gradle
 
       - name: Build shadow jar
-        run: ./gradlew shadowJar
+        run: |
+          chmod +x ./gradlew
+          ./gradlew shadowJar
 
       - name: Prepare artifact
         run: |
