@@ -16,7 +16,7 @@ public class AetherlinkCommand extends AbstractCommand {
     }
 
     @Override
-    protected CompletableFuture<Void> execute(CommandContext context) {
+    protected CompletableFuture<Void> execute(@SuppressWarnings("null") CommandContext context) {
         String input = context.getInputString();
         String[] parts = input == null ? new String[0] : input.trim().split("\\s+");
 
