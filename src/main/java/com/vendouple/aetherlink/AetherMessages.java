@@ -7,7 +7,7 @@ public class AetherMessages {
 
     public static class Chat {
         public String hytaleToDiscord = "**{HytalePlayer}**: {Message}";
-        public String discordToHytale = "§9[Discord] §7[{TopDiscordRoleInitials1}] §f{DiscordName}: {Message}";
+        public String discordToHytale = "[Discord] [{TopDiscordRoleInitials1}] {DiscordName}: {Message}";
         public String discordToDiscord = "**[{SourceChannel}]** {DiscordName}: {Message}";
         public String serverStart = ":white_check_mark: **Server has started!**";
         public String serverStop = ":octagonal_sign: **Server has stopped.**";

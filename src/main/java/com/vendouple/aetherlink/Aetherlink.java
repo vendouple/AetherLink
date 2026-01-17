@@ -10,9 +10,14 @@ import com.hypixel.hytale.server.core.event.events.player.PlayerDisconnectEvent;
 import java.util.logging.Level;
 import java.io.File;
 import javax.annotation.Nonnull; 
+import java.time.Duration;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.requests.GatewayIntent;
@@ -21,6 +26,10 @@ import net.dv8tion.jda.api.requests.GatewayIntent;
 public class Aetherlink extends JavaPlugin {
     private JDA jda;
     private ConfigManager configManager;
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    private volatile long startTimeMillis;
+    private volatile long lastReloadMillis;
+    private volatile long retryDelaySeconds = 5;
 
     public Aetherlink(@Nonnull JavaPluginInit init) {
         super(init);
@@ -29,6 +38,7 @@ public class Aetherlink extends JavaPlugin {
     @Override
     protected void start() { 
         getLogger().at(Level.INFO).log("AetherLink is loading configurations...");
+        startTimeMillis = System.currentTimeMillis();
         
         File dataFolder = new File("./config/AetherLink"); 
         configManager = new ConfigManager(dataFolder);
@@ -47,21 +57,18 @@ public class Aetherlink extends JavaPlugin {
 
         getLogger().at(Level.INFO).log("AetherLink is bridging the gap...");
 
-        try {
-            jda = JDABuilder.createDefault(token)
-                .enableIntents(GatewayIntent.MESSAGE_CONTENT)
-                .addEventListeners(new DiscordListener(this))
-                .build();
-        } catch (Exception e) {
-            getLogger().at(Level.SEVERE).withCause(e).log("Failed to start AetherLink Discord bot!");
-        }
+        connectDiscord(token);
 
         registerHytaleEvents();
+        registerCommands();
+        schedulePresenceAndTopicUpdates();
+        scheduleAutoRetry();
     }
 
     @Override
     protected void shutdown() {
         if (jda != null) jda.shutdown();
+        scheduler.shutdownNow();
         getLogger().at(Level.INFO).log("AetherLink has disconnected.");
     }
     
@@ -114,6 +121,32 @@ public class Aetherlink extends JavaPlugin {
         }
     }
 
+    public void applyDiscordChannelSettings(JDA discord) {
+        AetherConfig config = getConfig();
+        if (config == null || config.getChannelConfigs() == null) return;
+
+        int slowmodeSeconds = config.spamControl != null ? config.spamControl.discordCooldownSeconds : 0;
+        if (slowmodeSeconds < 0) slowmodeSeconds = 0;
+
+        for (AetherConfig.ChannelConfig channelCfg : config.getChannelConfigs()) {
+            if (channelCfg == null || !channelCfg.enabled) continue;
+            if (channelCfg.channelId == null || channelCfg.channelId.isBlank()) continue;
+
+            TextChannel channel = discord.getTextChannelById(channelCfg.channelId);
+            if (channel == null) continue;
+
+            var selfMember = channel.getGuild().getSelfMember();
+            if (!selfMember.hasPermission(channel, Permission.MANAGE_CHANNEL)) {
+                getLogger().at(Level.WARNING)
+                    .log("[AetherLink] Missing MANAGE_CHANNEL to set slowmode in #" + channel.getName()
+                        + " (Guild: " + channel.getGuild().getName() + ")");
+                continue;
+            }
+
+            channel.getManager().setSlowmode(slowmodeSeconds).queue();
+        }
+    }
+
     private void registerHytaleEvents() {
         HytaleListener listener = new HytaleListener(this);
 
@@ -123,6 +156,120 @@ public class Aetherlink extends JavaPlugin {
         getEventRegistry().registerGlobal(PlayerChatEvent.class, listener::onChat);
 
         getLogger().at(Level.INFO).log("AetherLink events registered!");
+    }
+
+    private void registerCommands() {
+        getCommandRegistry().registerCommand(new AetherlinkCommand(this));
+    }
+
+    private void connectDiscord(String token) {
+        try {
+            if (jda != null) {
+                jda.shutdownNow();
+                jda = null;
+            }
+            jda = JDABuilder.createDefault(token)
+                .enableIntents(GatewayIntent.MESSAGE_CONTENT)
+                .addEventListeners(new DiscordListener(this))
+                .build();
+            retryDelaySeconds = 5;
+        } catch (Exception e) {
+            getLogger().at(Level.SEVERE).withCause(e).log("Failed to start AetherLink Discord bot!");
+        }
+    }
+
+    private void scheduleAutoRetry() {
+        scheduler.scheduleAtFixedRate(() -> {
+            if (jda == null || jda.getStatus() != JDA.Status.CONNECTED) {
+                long delay = retryDelaySeconds;
+                retryDelaySeconds = Math.min(retryDelaySeconds * 2, 300);
+                scheduler.schedule(this::retryDiscordNow, delay, TimeUnit.SECONDS);
+            }
+        }, 10, 10, TimeUnit.SECONDS);
+    }
+
+    public synchronized void retryDiscordNow() {
+        AetherConfig config = getConfig();
+        if (config == null || config.botToken == null || config.botToken.isBlank()) return;
+        if (jda != null && jda.getStatus() == JDA.Status.CONNECTED) return;
+        connectDiscord(config.botToken);
+    }
+
+    public boolean getDiscordStatusConnected() {
+        return jda != null && jda.getStatus() == JDA.Status.CONNECTED;
+    }
+
+    public synchronized boolean reloadConfigs() {
+        if (configManager == null) return false;
+        long now = System.currentTimeMillis();
+        if (now - lastReloadMillis < 5000) return false;
+        lastReloadMillis = now;
+        configManager.load();
+        if (jda != null) {
+            validateDiscordChannels(jda);
+            applyDiscordChannelSettings(jda);
+            updatePresenceAndTopics();
+        }
+        return true;
+    }
+
+    private void schedulePresenceAndTopicUpdates() {
+        scheduler.scheduleAtFixedRate(this::updatePresenceAndTopics, 10, 60, TimeUnit.SECONDS);
+    }
+
+    private void updatePresenceAndTopics() {
+        if (jda == null) return;
+        AetherMessages messages = getMessages();
+        if (messages == null || messages.info == null) return;
+
+        int playerCount = getHytalePlayerCount();
+        String maxPlayers = getHytaleMaxPlayers();
+        String uptime = formatUptime();
+
+        String presence = messages.info.presence
+            .replace("{PlayerCount}", String.valueOf(playerCount));
+        jda.getPresence().setActivity(Activity.playing(presence));
+
+        AetherConfig config = getConfig();
+        if (config == null || config.getChannelConfigs() == null) return;
+
+        for (AetherConfig.ChannelConfig channelCfg : config.getChannelConfigs()) {
+            if (channelCfg == null || !channelCfg.enabled) continue;
+            if (channelCfg.channelId == null || channelCfg.channelId.isBlank()) continue;
+
+            TextChannel channel = jda.getTextChannelById(channelCfg.channelId);
+            if (channel == null) continue;
+
+            var selfMember = channel.getGuild().getSelfMember();
+            if (!selfMember.hasPermission(channel, Permission.MANAGE_CHANNEL)) {
+                continue;
+            }
+
+            String topic = messages.info.topicUpdater
+                .replace("{PlayerCount}", String.valueOf(playerCount))
+                .replace("{MaxPlayers}", maxPlayers)
+                .replace("{Uptime}", uptime);
+
+            channel.getManager().setTopic(topic).queue();
+        }
+    }
+
+    private int getHytalePlayerCount() {
+        Universe universe = Universe.get();
+        return universe != null ? universe.getPlayerCount() : 0;
+    }
+
+    private String getHytaleMaxPlayers() {
+        return "?";
+    }
+
+    private String formatUptime() {
+        long elapsed = System.currentTimeMillis() - startTimeMillis;
+        Duration d = Duration.ofMillis(Math.max(0, elapsed));
+        long hours = d.toHours();
+        long minutes = d.toMinutesPart();
+        long seconds = d.toSecondsPart();
+        return String.format("%02dh %02dm %02ds", hours, minutes, seconds);
     }
 
     public void sendToHytaleChat(String rawMessage) {

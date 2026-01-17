@@ -19,8 +19,8 @@ public class AetherConfig {
     }
 
     public static class SpamControl {
-        public int discordCooldownSeconds = 5; 
-        public int hytaleAggregateSeconds = 10; 
+        public int discordCooldownSeconds = 2; 
+        public int hytaleAggregateSeconds = 2; 
     }
 
     public static class ChannelConfig {
