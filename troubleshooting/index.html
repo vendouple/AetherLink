@@ -691,6 +691,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#other-information" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Other information
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#known-limitations" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -991,6 +1002,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#other-information" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Other information
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#known-limitations" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1027,10 +1049,12 @@
 <h2 id="bot-not-connecting">Bot Not Connecting</h2>
 <h3 id="please-set-your-bot-token">"PLEASE SET YOUR BOT TOKEN!"</h3>
 <p><strong>Cause:</strong> The bot token is missing or still set to the default.</p>
-<p><strong>Fix:</strong>
-1. Open <code>config/AetherLink/config.json</code>
-2. Replace <code>"YOUR_BOT_TOKEN_HERE"</code> with your actual bot token
-3. Restart the server</p>
+<p><strong>Fix:</strong></p>
+<ol>
+<li>Open <code>config/AetherLink/config.json</code></li>
+<li>Replace <code>"YOUR_BOT_TOKEN_HERE"</code> with your actual bot token</li>
+<li>Restart the server</li>
+</ol>
 <hr />
 <h3 id="bot-is-online-in-discord-but-not-responding">Bot is online in Discord but not responding</h3>
 <p><strong>Possible causes:</strong></p>
@@ -1056,36 +1080,46 @@
 <hr />
 <h3 id="channel-not-found-or-bot-lacks-access">"Channel not found or bot lacks access"</h3>
 <p><strong>Cause:</strong> The bot cannot see the configured channel.</p>
-<p><strong>Fix:</strong>
-1. Check the channel ID is correct
-2. Ensure the bot has <strong>View Channel</strong> permission
-3. If the channel is in a category, check category permissions too</p>
+<p><strong>Fix:</strong></p>
+<ol>
+<li>Check the channel ID is correct</li>
+<li>Ensure the bot has <strong>View Channel</strong> permission</li>
+<li>If the channel is in a category, check category permissions too</li>
+</ol>
 <hr />
 <h2 id="messages-not-sending">Messages Not Sending</h2>
 <h3 id="discord-hytale-not-working">Discord → Hytale not working</h3>
-<p><strong>Check:</strong>
-1. The channel's <code>readOnly</code> is set to <code>false</code>
-2. The channel's <code>enabled</code> is set to <code>true</code>
-3. Console shows no permission errors</p>
+<p><strong>Check:</strong></p>
+<ol>
+<li>The channel's <code>readOnly</code> is set to <code>false</code></li>
+<li>The channel's <code>enabled</code> is set to <code>true</code></li>
+<li>Console shows no permission errors</li>
+</ol>
 <hr />
 <h3 id="hytale-discord-not-working">Hytale → Discord not working</h3>
-<p><strong>Check:</strong>
-1. At least one channel is configured and <code>enabled: true</code>
-2. Bot has <strong>Send Messages</strong> permission in the channel
-3. Check console for error messages</p>
+<p><strong>Check:</strong></p>
+<ol>
+<li>At least one channel is configured and <code>enabled: true</code></li>
+<li>Bot has <strong>Send Messages</strong> permission in the channel</li>
+<li>Check console for error messages</li>
+</ol>
 <hr />
 <h3 id="missing-permissions-in-channel">"Missing permissions in #channel"</h3>
 <p><strong>Cause:</strong> The bot lacks required Discord permissions.</p>
-<p><strong>Required permissions:</strong>
-- <code>View Channel</code> – See the channel
-- <code>Send Messages</code> – Post messages
-- <code>Read Message History</code> – Read past messages
-- <code>Manage Channel</code> – Set slowmode and channel topic (optional)</p>
-<p><strong>Fix:</strong>
-1. Go to Server Settings → Roles
-2. Find the bot's role
-3. Enable the required permissions
-4. Or set permissions per-channel in Channel Settings → Permissions</p>
+<p><strong>Required permissions:</strong></p>
+<ul>
+<li><code>View Channel</code> – See the channel</li>
+<li><code>Send Messages</code> – Post messages</li>
+<li><code>Read Message History</code> – Read past messages</li>
+<li><code>Manage Channel</code> – Set slowmode and channel topic (optional)</li>
+</ul>
+<p><strong>Fix:</strong></p>
+<ol>
+<li>Go to Server Settings → Roles</li>
+<li>Find the bot's role</li>
+<li>Enable the required permissions</li>
+<li>Or set permissions per-channel in Channel Settings → Permissions</li>
+</ol>
 <hr />
 <h2 id="commands-not-working">Commands Not Working</h2>
 <h3 id="aetherlink-command-not-found">"/aetherlink" command not found</h3>
@@ -1136,10 +1170,12 @@
 </ol>
 <hr />
 <h3 id="memory-leaks">Memory leaks</h3>
-<p>If memory usage grows over time:
-1. Check for errors in the console
-2. Restart the server periodically
-3. Report the issue on GitHub with logs</p>
+<p>If memory usage grows over time:</p>
+<ol>
+<li>Check for errors in the console</li>
+<li>Restart the server periodically</li>
+<li>Report the issue on GitHub with logs</li>
+</ol>
 <hr />
 <h2 id="getting-help">Getting Help</h2>
 <p>If your issue isn't listed here:</p>
@@ -1152,6 +1188,8 @@
 <li>Steps to reproduce the issue</li>
 </ol>
 <hr />
+<h2 id="other-information">Other information</h2>
+<p>If you are comfortable with downloading and building, if one day aetherlink doesn't work because of an hytale update you can modify and build the .jar file yourself in <a href="../build/">Build It Yourself</a>.</p>
 <h2 id="known-limitations">Known Limitations</h2>
 <table>
 <thead>
