@@ -1,65 +1,83 @@
-# Getting Started
+﻿# Getting Started
+
+This guide will help you download and install AetherLink on your Hytale server.
+
+---
 
 ## Requirements
 
-- Java 21
-- Hytale server with plugin support
-- A Discord bot token
+- A Hytale dedicated server
+- A Discord bot token ([Create one here](https://discord.com/developers/applications))
+- Java 21 or newer
 
-## Get the JAR
+---
 
-You can either download a prebuilt release or build it yourself.
+## Download
 
-### Option A — Download from Releases
+### Option 1: Nightly Builds (Recommended)
 
-Grab the latest release (or nightly) JAR from GitHub Releases and place it in your server’s plugins folder.
+Download the latest nightly build from GitHub Releases:
 
-### Option B — Build locally
+**[Download Latest Nightly](https://github.com/vendouple/AetherLink/releases)**
 
-Use the Shadow JAR task to produce the plugin artifact:
+Look for releases tagged `nightly-YYYYMMDD`.
 
-- `./gradlew shadowJar`
+### Option 2: Build from Source
 
-The output JAR is created in `build/libs`.
+See [Build It Yourself](build.md) for instructions on compiling the plugin yourself.
 
-## Install
+---
 
-1. Place the built JAR in your Hytale server plugins folder.
-2. Start the server once to generate config files in `./config/AetherLink`.
-3. Edit `config.json` and `messages.json`.
-4. Restart the server or run `/aetherlink reload`.
+## Installation
 
-## Configuration
+1. **Download** `AetherLink-1.0.0-beta.1.jar` (or the latest version)
 
-`config.json` is generated on first run. Key fields:
+2. **Copy** the JAR file to your Hytale server's `plugins/` folder
 
-### Bot Token
+3. **Start** your server once to generate the config files
 
-- `botToken`: Discord bot token.
+4. **Stop** the server
 
-### Channels
+5. **Edit** `config/AetherLink/config.json`:
+    - Set your Discord bot token
+    - Add your Discord channel ID(s)
 
-`channelConfigs` is the primary list for all channels.
+6. **Start** the server again
 
-```json
-{
-  "channelConfigs": [
-    {
-      "channelId": "123456789012345678",
-      "readOnly": false,
-      "syncWithOtherChannels": true,
-      "enabled": true
-    }
-  ],
-  "syncEnabled": false,
-  "spamControl": {
-    "discordCooldownSeconds": 5,
-    "hytaleAggregateSeconds": 10
-  }
-}
-```
+---
 
-- `enabled`: If false, the channel is ignored entirely.
-- `readOnly`: If true, Discord → Hytale is blocked for that channel. Hytale → Discord still posts.
-- `syncWithOtherChannels`: If true, channel participates in cross-channel sync.
-- `syncEnabled`: Global switch for Discord ↔ Discord sync (requires 2+ channels).
+## Discord Bot Setup
+
+1. Go to the [Discord Developer Portal](https://discord.com/developers/applications)
+
+2. Click **New Application** and give it a name
+
+3. Go to **Bot** -> **Add Bot**
+
+4. Under **Privileged Gateway Intents**, enable:
+    - **Message Content Intent** (required for reading messages)
+
+5. Copy the **Token** and paste it into your `config.json`
+
+6. Go to **OAuth2** -> **URL Generator**:
+    - Select scopes: `bot`
+    - Select permissions: `Send Messages`, `Read Message History`, `View Channels`, `Manage Channels` (for slowmode/topic)
+
+7. Use the generated URL to invite the bot to your server
+
+---
+
+## Verify It Works
+
+1. Start your Hytale server
+2. Check the console for: `AetherLink events registered!`
+3. Send a message in your configured Discord channel
+4. The message should appear in Hytale chat
+
+---
+
+## Next Steps
+
+- [Configure your channels](config.md)
+- [Customize messages](messages.md)
+- [Troubleshooting](troubleshooting.md) if something isn't working
