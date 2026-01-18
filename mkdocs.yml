@@ -1,0 +1,12 @@
+site_name: AetherLink
+site_description: Discord ↔ Hytale bridge plugin documentation
+site_url: https://example.com
+repo_url: https://github.com/vendouple/AetherLink
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.expand
+    - content.code.copy
+nav:
+  - Getting Started: index.md
