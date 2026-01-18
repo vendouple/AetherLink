@@ -1,7 +1,6 @@
 # Build It Yourself
 
-Compile AetherLink from source.
-
+Compile AetherLink from source
 ---
 
 ## Requirements
@@ -30,6 +29,7 @@ The project requires the Hytale server JAR for compilation (it's not included in
 3. Copy `HytaleServer.jar` into the `libs/` folder
 
 Your structure should look like:
+
 ```
 AetherLink/
 ├── libs/

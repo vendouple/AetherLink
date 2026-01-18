@@ -14,7 +14,11 @@ This guide will help you download and install AetherLink on your Hytale server.
 
 ## Download
 
-### Option 1: Nightly Builds (Recommended)
+### Option 1: Download from curseforge (Recommended)
+
+Download the latest stable build from [CurseForge](https://legacy.curseforge.com/hytale/mods/aetherlink/files)
+
+### Option 2: Nightly Builds
 
 Download the latest nightly build from GitHub Releases:
 
@@ -22,7 +26,7 @@ Download the latest nightly build from GitHub Releases:
 
 Look for releases tagged `nightly-YYYYMMDD`.
 
-### Option 2: Build from Source
+### Option 3: Build from Source
 
 See [Build It Yourself](build.md) for instructions on compiling the plugin yourself.
 

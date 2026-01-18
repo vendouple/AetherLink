@@ -11,6 +11,7 @@ Common issues and how to fix them.
 **Cause:** The bot token is missing or still set to the default.
 
 **Fix:**
+
 1. Open `config/AetherLink/config.json`
 2. Replace `"YOUR_BOT_TOKEN_HERE"` with your actual bot token
 3. Restart the server
@@ -40,6 +41,7 @@ Common issues and how to fix them.
 **Cause:** The bot cannot see the configured channel.
 
 **Fix:**
+
 1. Check the channel ID is correct
 2. Ensure the bot has **View Channel** permission
 3. If the channel is in a category, check category permissions too
@@ -51,6 +53,7 @@ Common issues and how to fix them.
 ### Discord → Hytale not working
 
 **Check:**
+
 1. The channel's `readOnly` is set to `false`
 2. The channel's `enabled` is set to `true`
 3. Console shows no permission errors
@@ -60,6 +63,7 @@ Common issues and how to fix them.
 ### Hytale → Discord not working
 
 **Check:**
+
 1. At least one channel is configured and `enabled: true`
 2. Bot has **Send Messages** permission in the channel
 3. Check console for error messages
@@ -71,12 +75,14 @@ Common issues and how to fix them.
 **Cause:** The bot lacks required Discord permissions.
 
 **Required permissions:**
+
 - `View Channel` – See the channel
 - `Send Messages` – Post messages
 - `Read Message History` – Read past messages
 - `Manage Channel` – Set slowmode and channel topic (optional)
 
 **Fix:**
+
 1. Go to Server Settings → Roles
 2. Find the bot's role
 3. Enable the required permissions
@@ -122,6 +128,7 @@ Common issues and how to fix them.
 The aggregation groups duplicate events within `hytaleAggregateSeconds`.
 
 **To disable aggregation:**
+
 ```json
 "spamControl": {
   "hytaleAggregateSeconds": 0
@@ -149,6 +156,7 @@ The aggregation groups duplicate events within `hytaleAggregateSeconds`.
 ### Memory leaks
 
 If memory usage grows over time:
+
 1. Check for errors in the console
 2. Restart the server periodically
 3. Report the issue on GitHub with logs
@@ -167,6 +175,10 @@ If your issue isn't listed here:
    - Steps to reproduce the issue
 
 ---
+
+## Other information
+
+If you are comfortable with downloading and building, if one day aetherlink doesn't work because of an hytale update you can modify and build the .jar file yourself in [Build It Yourself](build.md).
 
 ## Known Limitations
 
