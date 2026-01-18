@@ -28,6 +28,10 @@ AetherLink bridges your Hytale server with Discord, allowing seamless chat synch
 
 ---
 
+## Notes
+
+In the future the bot will instead use discord webhooks for a more immersive chatting experience, currently the bot itself will instead send it to the chat
+
 ## Quick Links
 
 - [Getting Started](getting-started.md) – Download and install the plugin
