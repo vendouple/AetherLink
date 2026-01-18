@@ -10,13 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://vendouple.github.io/AetherLink/getting-started/">
+        <link rel="canonical" href="https://vendouple.github.io/AetherLink/config/">
       
       
-        <link rel="prev" href="..">
+        <link rel="prev" href="../getting-started/">
       
       
-        <link rel="next" href="../config/">
+        <link rel="next" href="../messages/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>Getting Started - AetherLink</title>
+        <title>config.json - AetherLink</title>
       
     
     
@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#getting-started" class="md-skip">
+        <a href="#configjson-reference" class="md-skip">
           Skip to content
         </a>
       
@@ -112,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Getting Started
+              config.json
             
           </span>
         </div>
@@ -256,6 +256,87 @@
       
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Configuration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
     
   
   
@@ -275,7 +356,7 @@
   <span class="md-ellipsis">
     
   
-    Getting Started
+    config.json
   
 
     
@@ -293,7 +374,7 @@
   <span class="md-ellipsis">
     
   
-    Getting Started
+    config.json
   
 
     
@@ -319,10 +400,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#requirements" class="md-nav__link">
+  <a href="#full-example" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Requirements
+        Full Example
       
     </span>
   </a>
@@ -330,22 +411,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#download" class="md-nav__link">
+  <a href="#options" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Download
+        Options
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Download">
+    <nav class="md-nav" aria-label="Options">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#option-1-nightly-builds-recommended" class="md-nav__link">
+  <a href="#bottoken" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Option 1: Nightly Builds (Recommended)
+        botToken
       
     </span>
   </a>
@@ -353,10 +434,22 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#option-2-build-from-source" class="md-nav__link">
+  <a href="#channelconfigs" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Option 2: Build from Source
+        channelConfigs
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="channelConfigs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#channel-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Channel Options
       
     </span>
   </a>
@@ -367,45 +460,67 @@
     </nav>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#installation" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#syncenabled" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Installation
+        syncEnabled
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#discord-bot-setup" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#linking" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Discord Bot Setup
+        linking
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#verify-it-works" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#spamcontrol" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Verify It Works
+        spamControl
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="spamControl">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-spam-control-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Spam Control Works
       
     </span>
   </a>
   
 </li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
       
         <li class="md-nav__item">
-  <a href="#next-steps" class="md-nav__link">
+  <a href="#default-config" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Next Steps
+        Default Config
       
     </span>
   </a>
@@ -416,87 +531,6 @@
   
 </nav>
       
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-    
-    
-      
-        
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
-      
-        
-        
-          
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
-        
-          
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Configuration
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Configuration
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../config/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    config.json
-  
-
-    
-  </span>
-  
-  
-
-      </a>
     </li>
   
 
@@ -618,10 +652,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#requirements" class="md-nav__link">
+  <a href="#full-example" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Requirements
+        Full Example
       
     </span>
   </a>
@@ -629,22 +663,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#download" class="md-nav__link">
+  <a href="#options" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Download
+        Options
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Download">
+    <nav class="md-nav" aria-label="Options">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#option-1-nightly-builds-recommended" class="md-nav__link">
+  <a href="#bottoken" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Option 1: Nightly Builds (Recommended)
+        botToken
       
     </span>
   </a>
@@ -652,10 +686,22 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#option-2-build-from-source" class="md-nav__link">
+  <a href="#channelconfigs" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Option 2: Build from Source
+        channelConfigs
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="channelConfigs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#channel-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Channel Options
       
     </span>
   </a>
@@ -666,45 +712,67 @@
     </nav>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#installation" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#syncenabled" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Installation
+        syncEnabled
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#discord-bot-setup" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#linking" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Discord Bot Setup
+        linking
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#verify-it-works" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#spamcontrol" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Verify It Works
+        spamControl
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="spamControl">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-spam-control-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Spam Control Works
       
     </span>
   </a>
   
 </li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
       
         <li class="md-nav__item">
-  <a href="#next-steps" class="md-nav__link">
+  <a href="#default-config" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Next Steps
+        Default Config
       
     </span>
   </a>
@@ -731,96 +799,180 @@
   
 
 
-<h1 id="getting-started">Getting Started</h1>
-<p>This guide will help you download and install AetherLink on your Hytale server.</p>
+<h1 id="configjson-reference">config.json Reference</h1>
+<p>The main configuration file is located at <code>config/AetherLink/config.json</code>.</p>
 <hr />
-<h2 id="requirements">Requirements</h2>
-<ul>
-<li>A Hytale dedicated server</li>
-<li>A Discord bot token (<a href="https://discord.com/developers/applications">Create one here</a>)</li>
-<li>Java 21 or newer</li>
-</ul>
+<h2 id="full-example">Full Example</h2>
+<pre><code class="language-json">{
+  &quot;botToken&quot;: &quot;YOUR_BOT_TOKEN_HERE&quot;,
+  &quot;channelConfigs&quot;: [
+    {
+      &quot;channelId&quot;: &quot;123456789012345678&quot;,
+      &quot;readOnly&quot;: false,
+      &quot;syncWithOtherChannels&quot;: true,
+      &quot;enabled&quot;: true
+    },
+    {
+      &quot;channelId&quot;: &quot;987654321098765432&quot;,
+      &quot;readOnly&quot;: true,
+      &quot;syncWithOtherChannels&quot;: false,
+      &quot;enabled&quot;: true
+    }
+  ],
+  &quot;syncEnabled&quot;: false,
+  &quot;linking&quot;: {
+    &quot;enabled&quot;: true,
+    &quot;codeExpirationSeconds&quot;: 300
+  },
+  &quot;spamControl&quot;: {
+    &quot;discordCooldownSeconds&quot;: 2,
+    &quot;hytaleAggregateSeconds&quot;: 2
+  }
+}
+</code></pre>
 <hr />
-<h2 id="download">Download</h2>
-<h3 id="option-1-nightly-builds-recommended">Option 1: Nightly Builds (Recommended)</h3>
-<p>Download the latest nightly build from GitHub Releases:</p>
-<p><strong><a href="https://github.com/vendouple/AetherLink/releases">Download Latest Nightly</a></strong></p>
-<p>Look for releases tagged <code>nightly-YYYYMMDD</code>.</p>
-<h3 id="option-2-build-from-source">Option 2: Build from Source</h3>
-<p>See <a href="../build/">Build It Yourself</a> for instructions on compiling the plugin yourself.</p>
+<h2 id="options">Options</h2>
+<h3 id="bottoken"><code>botToken</code></h3>
+<p><strong>Type:</strong> <code>string</code><br />
+<strong>Default:</strong> <code>"YOUR_BOT_TOKEN_HERE"</code></p>
+<p>Your Discord bot token. Get one from the <a href="https://discord.com/developers/applications">Discord Developer Portal</a>.</p>
+<p>!!! warning
+    Never share your bot token publicly. If exposed, regenerate it immediately.</p>
 <hr />
-<h2 id="installation">Installation</h2>
+<h3 id="channelconfigs"><code>channelConfigs</code></h3>
+<p><strong>Type:</strong> <code>array</code></p>
+<p>A list of Discord channels the bot will use. Each channel has its own settings.</p>
+<h4 id="channel-options">Channel Options</h4>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>channelId</code></td>
+<td>string</td>
+<td><code>""</code></td>
+<td>The Discord channel ID</td>
+</tr>
+<tr>
+<td><code>readOnly</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td>If <code>true</code>, messages from this channel are <strong>not</strong> sent to Hytale. Hytale messages still appear in this channel.</td>
+</tr>
+<tr>
+<td><code>syncWithOtherChannels</code></td>
+<td>boolean</td>
+<td><code>true</code></td>
+<td>If <code>true</code> and <code>syncEnabled</code> is <code>true</code>, messages from this channel are forwarded to other synced channels.</td>
+</tr>
+<tr>
+<td><code>enabled</code></td>
+<td>boolean</td>
+<td><code>true</code></td>
+<td>If <code>false</code>, the channel is completely ignored.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>How to get a Channel ID:</strong></p>
 <ol>
-<li>
-<p><strong>Download</strong> <code>AetherLink-1.0.0-beta.1.jar</code> (or the latest version)</p>
-</li>
-<li>
-<p><strong>Copy</strong> the JAR file to your Hytale server's <code>plugins/</code> folder</p>
-</li>
-<li>
-<p><strong>Start</strong> your server once to generate the config files</p>
-</li>
-<li>
-<p><strong>Stop</strong> the server</p>
-</li>
-<li>
-<p><strong>Edit</strong> <code>config/AetherLink/config.json</code>:</p>
-<ul>
-<li>Set your Discord bot token</li>
-<li>Add your Discord channel ID(s)</li>
-</ul>
-</li>
-<li>
-<p><strong>Start</strong> the server again</p>
-</li>
+<li>Enable Developer Mode in Discord (Settings → Advanced → Developer Mode)</li>
+<li>Right-click the channel → Copy Channel ID</li>
 </ol>
 <hr />
-<h2 id="discord-bot-setup">Discord Bot Setup</h2>
-<ol>
-<li>
-<p>Go to the <a href="https://discord.com/developers/applications">Discord Developer Portal</a></p>
-</li>
-<li>
-<p>Click <strong>New Application</strong> and give it a name</p>
-</li>
-<li>
-<p>Go to <strong>Bot</strong> -&gt; <strong>Add Bot</strong></p>
-</li>
-<li>
-<p>Under <strong>Privileged Gateway Intents</strong>, enable:</p>
-<ul>
-<li><strong>Message Content Intent</strong> (required for reading messages)</li>
-</ul>
-</li>
-<li>
-<p>Copy the <strong>Token</strong> and paste it into your <code>config.json</code></p>
-</li>
-<li>
-<p>Go to <strong>OAuth2</strong> -&gt; <strong>URL Generator</strong>:</p>
-<ul>
-<li>Select scopes: <code>bot</code></li>
-<li>Select permissions: <code>Send Messages</code>, <code>Read Message History</code>, <code>View Channels</code>, <code>Manage Channels</code> (for slowmode/topic)</li>
-</ul>
-</li>
-<li>
-<p>Use the generated URL to invite the bot to your server</p>
-</li>
-</ol>
+<h3 id="syncenabled"><code>syncEnabled</code></h3>
+<p><strong>Type:</strong> <code>boolean</code><br />
+<strong>Default:</strong> <code>false</code></p>
+<p>When <code>true</code>, messages sent in one Discord channel are forwarded to all other channels that have <code>syncWithOtherChannels: true</code>.</p>
+<p>!!! note
+    You need at least 2 channels configured for sync to work.</p>
 <hr />
-<h2 id="verify-it-works">Verify It Works</h2>
-<ol>
-<li>Start your Hytale server</li>
-<li>Check the console for: <code>AetherLink events registered!</code></li>
-<li>Send a message in your configured Discord channel</li>
-<li>The message should appear in Hytale chat</li>
-</ol>
+<h3 id="linking"><code>linking</code></h3>
+<p><strong>Type:</strong> <code>object</code></p>
+<p>Settings for Discord-to-Hytale account linking.</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>enabled</code></td>
+<td>boolean</td>
+<td><code>true</code></td>
+<td>Enable/disable the linking feature</td>
+</tr>
+<tr>
+<td><code>codeExpirationSeconds</code></td>
+<td>integer</td>
+<td><code>300</code></td>
+<td>How long a linking code is valid (in seconds)</td>
+</tr>
+</tbody>
+</table>
+<p>!!! info
+    The linking feature is <strong>not yet implemented</strong>. These settings are reserved for future use.</p>
 <hr />
-<h2 id="next-steps">Next Steps</h2>
-<ul>
-<li><a href="../config/">Configure your channels</a></li>
-<li><a href="../messages/">Customize messages</a></li>
-<li><a href="../troubleshooting/">Troubleshooting</a> if something isn't working</li>
-</ul>
+<h3 id="spamcontrol"><code>spamControl</code></h3>
+<p><strong>Type:</strong> <code>object</code></p>
+<p>Settings to prevent spam and rate-limit messages.</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>discordCooldownSeconds</code></td>
+<td>integer</td>
+<td><code>2</code></td>
+<td>Sets Discord channel slowmode (seconds between messages per user)</td>
+</tr>
+<tr>
+<td><code>hytaleAggregateSeconds</code></td>
+<td>integer</td>
+<td><code>2</code></td>
+<td>Groups duplicate Hytale events (e.g., rapid join/leave) within this window</td>
+</tr>
+</tbody>
+</table>
+<h4 id="how-spam-control-works">How Spam Control Works</h4>
+<p><strong>Discord Slowmode:</strong><br />
+The bot automatically sets the configured slowmode on all enabled channels. Requires <code>Manage Channel</code> permission.</p>
+<p><strong>Hytale Aggregation:</strong><br />
+If the same event (e.g., player join) occurs multiple times within the window, it's sent to Discord as a single message like:<br />
+<code>→ PlayerName joined the server. (x3)</code></p>
+<hr />
+<h2 id="default-config">Default Config</h2>
+<p>When you first run AetherLink, it creates this default config:</p>
+<pre><code class="language-json">{
+  &quot;botToken&quot;: &quot;YOUR_BOT_TOKEN_HERE&quot;,
+  &quot;channelConfigs&quot;: [],
+  &quot;syncEnabled&quot;: false,
+  &quot;linking&quot;: {
+    &quot;enabled&quot;: true,
+    &quot;codeExpirationSeconds&quot;: 300
+  },
+  &quot;spamControl&quot;: {
+    &quot;discordCooldownSeconds&quot;: 2,
+    &quot;hytaleAggregateSeconds&quot;: 2
+  }
+}
+</code></pre>
+<p>You <strong>must</strong> set <code>botToken</code> and add at least one channel to <code>channelConfigs</code> for the plugin to work.</p>
 
 
 
