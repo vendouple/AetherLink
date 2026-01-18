@@ -9,4 +9,6 @@ theme:
     - navigation.expand
     - content.code.copy
 nav:
-  - Getting Started: index.md
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - Usage: usage.md
