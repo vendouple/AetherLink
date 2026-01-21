@@ -11,6 +11,8 @@ import java.util.logging.Level;
 import java.io.File;
 import javax.annotation.Nonnull; 
 import java.time.Duration;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -30,6 +32,10 @@ public class Aetherlink extends JavaPlugin {
     private volatile long startTimeMillis;
     private volatile long lastReloadMillis;
     private volatile long retryDelaySeconds = 5;
+    private final Set<String> warnedMissingManageChannelTopic = ConcurrentHashMap.newKeySet();
+    private final Set<String> warnedMissingManageChannelSlowmode = ConcurrentHashMap.newKeySet();
+    private volatile boolean warnedMissingPresenceTemplate;
+    private volatile boolean warnedMissingTopicTemplate;
 
     public Aetherlink(@Nonnull JavaPluginInit init) {
         super(init);
@@ -123,27 +129,44 @@ public class Aetherlink extends JavaPlugin {
 
     public void applyDiscordChannelSettings(JDA discord) {
         AetherConfig config = getConfig();
-        if (config == null || config.getChannelConfigs() == null) return;
+        if (config == null) return;
 
-        int slowmodeSeconds = config.spamControl != null ? config.spamControl.discordCooldownSeconds : 0;
-        if (slowmodeSeconds < 0) slowmodeSeconds = 0;
+        int configCooldown = config.spamControl.discordCooldownSeconds;
+        // -1 or 0 means disabled in config, so we do nothing
+        if (configCooldown <= 0) return; 
 
         for (AetherConfig.ChannelConfig channelCfg : config.getChannelConfigs()) {
-            if (channelCfg == null || !channelCfg.enabled) continue;
-            if (channelCfg.channelId == null || channelCfg.channelId.isBlank()) continue;
+            if (!channelCfg.enabled) continue;
 
             TextChannel channel = discord.getTextChannelById(channelCfg.channelId);
             if (channel == null) continue;
 
-            var selfMember = channel.getGuild().getSelfMember();
-            if (!selfMember.hasPermission(channel, Permission.MANAGE_CHANNEL)) {
-                getLogger().at(Level.WARNING)
-                    .log("[AetherLink] Missing MANAGE_CHANNEL to set slowmode in #" + channel.getName()
-                        + " (Guild: " + channel.getGuild().getName() + ")");
-                continue;
-            }
+            int currentSlowmode = channel.getSlowmode();
 
-            channel.getManager().setSlowmode(slowmodeSeconds).queue();
+            // LOGIC: Only act if Config requires MORE restriction than currently exists
+            if (configCooldown > currentSlowmode) {
+                 var self = channel.getGuild().getSelfMember();
+
+                 // Check permission first
+                 if (self.hasPermission(channel, Permission.MANAGE_CHANNEL)) {
+                     channel.getManager().setSlowmode(configCooldown).queue();
+                     getLogger().at(Level.INFO).log("[AetherLink] Enforced " + configCooldown + "s slowmode in #" + channel.getName());
+                 } else {
+                     // WARN because we WANTED to set it but COULDN'T
+                     getLogger().at(Level.WARNING).log("--------------------------------------------------");
+                     getLogger().at(Level.WARNING).log("[AetherLink] SECURITY WARNING");
+                     getLogger().at(Level.WARNING).log("Cannot enforce slowmode in channel: #" + channel.getName());
+                     getLogger().at(Level.WARNING).log("Bot needs 'Manage Channel' permission.");
+                     getLogger().at(Level.WARNING).log("Current: " + currentSlowmode + "s | Required: " + configCooldown + "s");
+                     getLogger().at(Level.WARNING).log("--------------------------------------------------");
+                     warnMissingManageChannelOnce(
+                         channel,
+                         null,
+                         "AetherLink: Missing 'Manage Channel' permission; cannot enforce slowmode.",
+                         warnedMissingManageChannelSlowmode
+                     );
+                 }
+            }
         }
     }
 
@@ -217,7 +240,7 @@ public class Aetherlink extends JavaPlugin {
         scheduler.scheduleAtFixedRate(this::updatePresenceAndTopics, 10, 60, TimeUnit.SECONDS);
     }
 
-    private void updatePresenceAndTopics() {
+    public void updatePresenceAndTopics() {
         if (jda == null) return;
         AetherMessages messages = getMessages();
         if (messages == null || messages.info == null) return;
@@ -226,12 +249,27 @@ public class Aetherlink extends JavaPlugin {
         String maxPlayers = getHytaleMaxPlayers();
         String uptime = formatUptime();
 
-        String presence = messages.info.presence
-            .replace("{PlayerCount}", String.valueOf(playerCount));
-        jda.getPresence().setActivity(Activity.playing(presence));
+        if (messages.info.presence == null || messages.info.presence.isBlank()) {
+            if (!warnedMissingPresenceTemplate) {
+                warnedMissingPresenceTemplate = true;
+                getLogger().at(Level.WARNING).log("[AetherLink] Presence template is missing. Set messages.info.presence in messages.json.");
+            }
+        } else {
+            String presence = messages.info.presence
+                .replace("{PlayerCount}", String.valueOf(playerCount));
+            jda.getPresence().setActivity(Activity.playing(presence));
+        }
 
         AetherConfig config = getConfig();
         if (config == null || config.getChannelConfigs() == null) return;
+
+        if (messages.info.topicUpdater == null || messages.info.topicUpdater.isBlank()) {
+            if (!warnedMissingTopicTemplate) {
+                warnedMissingTopicTemplate = true;
+                getLogger().at(Level.WARNING).log("[AetherLink] Topic template is missing. Set messages.info.topicUpdater in messages.json.");
+            }
+            return;
+        }
 
         for (AetherConfig.ChannelConfig channelCfg : config.getChannelConfigs()) {
             if (channelCfg == null || !channelCfg.enabled) continue;
@@ -242,6 +280,13 @@ public class Aetherlink extends JavaPlugin {
 
             var selfMember = channel.getGuild().getSelfMember();
             if (!selfMember.hasPermission(channel, Permission.MANAGE_CHANNEL)) {
+                warnMissingManageChannelOnce(
+                    channel,
+                    "[AetherLink] Missing Manage Channel permission in #" + channel.getName()
+                        + " (Guild: " + channel.getGuild().getName() + "). Topic cannot be updated.",
+                    "AetherLink: Missing 'Manage Channel' permission; cannot update topic.",
+                    warnedMissingManageChannelTopic
+                );
                 continue;
             }
 
@@ -311,5 +356,42 @@ public class Aetherlink extends JavaPlugin {
 
             channel.sendMessage(message).queue();
         }
+    }
+        public void sendToDiscordChannelsCallback(String message, java.util.function.Consumer<net.dv8tion.jda.api.entities.Message> callback) {
+        if (jda == null || message == null) return;
+        for (AetherConfig.ChannelConfig cfg : getConfig().getChannelConfigs()) {
+            if (!cfg.enabled || cfg.readOnly) continue;
+            net.dv8tion.jda.api.entities.channel.concrete.TextChannel ch = jda.getTextChannelById(cfg.channelId);
+            if (ch != null) {
+                // Queue with success callback
+                ch.sendMessage(message).queue(callback); 
+            }
+        }
+    }
+
+    public void editDiscordMessage(String messageId, String newContent) {
+        if (jda == null || messageId == null) return;
+        for (AetherConfig.ChannelConfig cfg : getConfig().getChannelConfigs()) {
+            if (!cfg.enabled || cfg.readOnly) continue;
+            net.dv8tion.jda.api.entities.channel.concrete.TextChannel ch = jda.getTextChannelById(cfg.channelId);
+            if (ch != null) {
+                // Retrieve message by ID and edit it
+                ch.retrieveMessageById(messageId).queue(msg -> {
+                    msg.editMessage(newContent).queue();
+                }, failure -> { /* Message might have been deleted, ignore */ });
+            }
+        }
+    }
+
+    private void warnMissingManageChannelOnce(TextChannel channel, String logMessage, String channelMessage, Set<String> warnedSet) {
+        if (channel == null || warnedSet == null) return;
+        if (!warnedSet.add(channel.getId())) return;
+        if (logMessage != null && !logMessage.isBlank()) {
+            getLogger().at(Level.WARNING).log(logMessage);
+        }
+        if (channelMessage == null || channelMessage.isBlank()) return;
+        var selfMember = channel.getGuild().getSelfMember();
+        if (!selfMember.hasPermission(channel, Permission.MESSAGE_SEND)) return;
+        channel.sendMessage(channelMessage).queue();
     }
 }

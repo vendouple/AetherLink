@@ -10,7 +10,7 @@ java {
 }
 
 group = "com.vendouple.aetherlink"
-version = "1.0.0-beta.1"
+version = "1.0.0-beta.2"
 
 repositories {
     mavenCentral()

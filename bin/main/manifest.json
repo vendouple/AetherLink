@@ -1,7 +1,0 @@
-{
-    "Id": "hycord",
-    "Name": "Hycord",
-    "Version": "1.0.0",
-    "Main": "com.vendouple.hycord.Hycord",
-    "Description": "Snappy bridge between Hytale and Discord. Easy to configure, and very customizable."
-}

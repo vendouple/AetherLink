@@ -104,6 +104,7 @@ public class DiscordListener extends ListenerAdapter {
     public void onReady(@Nonnull ReadyEvent event) {
         plugin.validateDiscordChannels(event.getJDA());
         plugin.applyDiscordChannelSettings(event.getJDA());
+        plugin.updatePresenceAndTopics();
     }
 
     private String getTopRoleInitial(Member member) {

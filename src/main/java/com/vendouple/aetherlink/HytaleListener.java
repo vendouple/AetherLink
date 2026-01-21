@@ -4,133 +4,80 @@ import com.hypixel.hytale.server.core.event.events.player.PlayerChatEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerConnectEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerDisconnectEvent;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
 
 public class HytaleListener {
     private final Aetherlink plugin;
-
-    private static final ScheduledExecutorService AGGREGATOR = Executors.newSingleThreadScheduledExecutor(new ThreadFactory() {
-        @Override
-        public Thread newThread(Runnable r) {
-            Thread t = new Thread(r, "Aetherlink-HytaleAggregator");
-            t.setDaemon(true);
-            return t;
-        }
-    });
-
-    private final ConcurrentHashMap<String, DuplicateState> duplicates = new ConcurrentHashMap<>();
+    // Stores the last message info for each player to handle editing
+    private final ConcurrentHashMap<String, LastMessageInfo> lastMessages = new ConcurrentHashMap<>();
 
     public HytaleListener(Aetherlink plugin) {
         this.plugin = plugin;
     }
 
     public void onJoin(PlayerConnectEvent event) {
-        if (event == null || plugin == null) return;
-        AetherMessages messages = plugin.getMessages();
-        if (messages == null) return;
-
-        String playerName = event.getPlayerRef() != null ? event.getPlayerRef().getUsername() : null;
-        if (playerName == null || playerName.isBlank()) return;
-
-        String formatted = messages.chat.join
-            .replace("{HytalePlayer}", playerName);
-
-        plugin.sendToDiscordChannels(formatted);
+        if (plugin.getMessages() == null) return;
+        String name = event.getPlayerRef().getUsername();
+        plugin.sendToDiscordChannels(plugin.getMessages().chat.join.replace("{HytalePlayer}", name));
     }
 
     public void onQuit(PlayerDisconnectEvent event) {
-        if (event == null || plugin == null) return;
-        AetherMessages messages = plugin.getMessages();
-        if (messages == null) return;
-
-        String playerName = event.getPlayerRef() != null ? event.getPlayerRef().getUsername() : null;
-        if (playerName == null || playerName.isBlank()) return;
-
-        String formatted = messages.chat.leave
-            .replace("{HytalePlayer}", playerName);
-
-        plugin.sendToDiscordChannels(formatted);
+        if (plugin.getMessages() == null) return;
+        String name = event.getPlayerRef().getUsername();
+        plugin.sendToDiscordChannels(plugin.getMessages().chat.leave.replace("{HytalePlayer}", name));
     }
 
     public void onChat(PlayerChatEvent event) {
-        if (event == null || plugin == null) return;
-        AetherMessages messages = plugin.getMessages();
-        if (messages == null) return;
-
-        String playerName = event.getSender() != null ? event.getSender().getUsername() : null;
+        String name = event.getSender().getUsername();
         String content = event.getContent();
-        if (playerName == null || playerName.isBlank()) return;
-        if (content == null || content.isBlank()) return;
-
+        
         AetherConfig config = plugin.getConfig();
-        int aggregateSeconds = config != null && config.spamControl != null
-            ? config.spamControl.hytaleAggregateSeconds
-            : 0;
+        int aggregateWindow = config.spamControl.hytaleAggregateSeconds;
 
-        if (aggregateSeconds > 0) {
-            enqueueDuplicate(playerName, content, messages, aggregateSeconds);
+        // Unique key for this player + this specific message content
+        String key = name + ":" + content;
+        long now = System.currentTimeMillis();
+
+        LastMessageInfo lastInfo = lastMessages.get(key);
+
+        // CHECK: Is this a duplicate sent within the time window?
+        if (lastInfo != null && (now - lastInfo.timestamp) < (aggregateWindow * 1000L)) {
+            // YES: It's a duplicate. Update the count and EDIT the Discord message.
+            lastInfo.count++;
+            lastInfo.timestamp = now; // Reset timer so they can keep chaining
+            
+            String editedMsg = formatMessage(name, content + " (" + lastInfo.count + "x)");
+            
+            // We specifically edit the specific Discord message we saved earlier
+            plugin.editDiscordMessage(lastInfo.discordMsgId, editedMsg);
         } else {
-            String formatted = messages.chat.hytaleToDiscord
-                .replace("{HytalePlayer}", playerName)
-                .replace("{Message}", content);
-            plugin.sendToDiscordChannels(formatted);
+            // NO: It's a new message (or time expired). Send normally.
+            String formatted = formatMessage(name, content);
+            
+            // Send and SAVE the Discord Message ID so we can edit it later
+            plugin.sendToDiscordChannelsCallback(formatted, (sentMsg) -> {
+                if (sentMsg != null) {
+                    lastMessages.put(key, new LastMessageInfo(sentMsg.getId(), now));
+                }
+            });
         }
     }
 
-    private void enqueueDuplicate(String playerName, String content, AetherMessages messages, int aggregateSeconds) {
-        String key = playerName + ":" + content;
-        DuplicateState state = duplicates.computeIfAbsent(key, k -> new DuplicateState(playerName, content));
-        synchronized (state) {
-            state.count++;
-            state.messages = messages;
-            if (state.future == null || state.future.isDone()) {
-                state.future = AGGREGATOR.schedule(() -> flushDuplicate(key), aggregateSeconds, TimeUnit.SECONDS);
-            }
-        }
+    private String formatMessage(String player, String msg) {
+        return plugin.getMessages().chat.hytaleToDiscord
+                .replace("{HytalePlayer}", player)
+                .replace("{Message}", msg);
     }
 
-    private void flushDuplicate(String key) {
-        DuplicateState state = duplicates.remove(key);
-        if (state == null) return;
-
+    // simple data holder
+    private static class LastMessageInfo {
+        String discordMsgId;
+        long timestamp;
         int count;
-        String playerName;
-        String content;
-        AetherMessages messages;
 
-        synchronized (state) {
-            count = state.count;
-            playerName = state.playerName;
-            content = state.content;
-            messages = state.messages;
-        }
-
-        if (messages == null || playerName == null || playerName.isBlank() || content == null || content.isBlank()) {
-            return;
-        }
-
-        String messageText = count > 1 ? content + " (" + count + ")" : content;
-        String formatted = messages.chat.hytaleToDiscord
-            .replace("{HytalePlayer}", playerName)
-            .replace("{Message}", messageText);
-
-        plugin.sendToDiscordChannels(formatted);
-    }
-
-    private static class DuplicateState {
-        private final String playerName;
-        private final String content;
-        private int count = 0;
-        private AetherMessages messages;
-        private ScheduledFuture<?> future;
-
-        private DuplicateState(String playerName, String content) {
-            this.playerName = playerName;
-            this.content = content;
+        public LastMessageInfo(String msgId, long timestamp) {
+            this.discordMsgId = msgId;
+            this.timestamp = timestamp;
+            this.count = 1;
         }
     }
 }

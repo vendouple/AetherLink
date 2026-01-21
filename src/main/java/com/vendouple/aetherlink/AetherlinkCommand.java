@@ -21,12 +21,13 @@ public class AetherlinkCommand extends AbstractCommand {
         String[] parts = input == null ? new String[0] : input.trim().split("\\s+");
 
         if (parts.length <= 1) {
-            context.sendMessage(Message.raw("Usage: /aetherlink reload | /aetherlink retrynow"));
+            sendHelp(context);
             return CompletableFuture.completedFuture(null);
         }
 
         String sub = parts[1].toLowerCase();
         switch (sub) {
+            case "help" -> sendHelp(context);
             case "reload" -> {
                 boolean ok = plugin.reloadConfigs();
                 if (!ok) {
@@ -43,9 +44,19 @@ public class AetherlinkCommand extends AbstractCommand {
                     context.sendMessage(Message.raw("Retrying Discord connection..."));
                 }
             }
-            default -> context.sendMessage(Message.raw("Unknown subcommand. Use: /aetherlink reload | /aetherlink retrynow"));
+            default -> {
+                context.sendMessage(Message.raw("Unknown subcommand. Use /aetherlink help."));
+                sendHelp(context);
+            }
         }
 
         return CompletableFuture.completedFuture(null);
+    }
+
+    private void sendHelp(CommandContext context) {
+        context.sendMessage(Message.raw("AetherLink commands:\n" +
+            "/aetherlink help - Show this help menu\n" +
+            "/aetherlink reload - Reload config and messages\n" +
+            "/aetherlink retrynow - Retry Discord connection"));
     }
 }

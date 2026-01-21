@@ -1,7 +1,7 @@
 {
     "Group": "com.vendouple",
     "Name": "aetherlink",
-    "Version": "1.0.0-beta.1",
+    "Version": "1.0.0-beta.2",
     "Main": "com.vendouple.aetherlink.Aetherlink",
     "Description": "Snappy bridge between Hytale and Discord. Easy to configure, and very customizable."
 }
