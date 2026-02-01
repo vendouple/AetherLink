@@ -7,6 +7,9 @@ import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.event.events.player.PlayerChatEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerConnectEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerDisconnectEvent;
+import com.hypixel.hytale.server.core.event.events.ecs.DiscoverZoneEvent;
+import com.hypixel.hytale.server.core.modules.entity.damage.event.KillFeedEvent;
+import com.hypixel.hytale.server.core.HytaleServerConfig;
 import java.util.logging.Level;
 import java.io.File;
 import javax.annotation.Nonnull; 
@@ -36,6 +39,7 @@ public class Aetherlink extends JavaPlugin {
     private final Set<String> warnedMissingManageChannelSlowmode = ConcurrentHashMap.newKeySet();
     private volatile boolean warnedMissingPresenceTemplate;
     private volatile boolean warnedMissingTopicTemplate;
+    private volatile boolean warnedMissingMaxPlayers;
 
     public Aetherlink(@Nonnull JavaPluginInit init) {
         super(init);
@@ -178,7 +182,15 @@ public class Aetherlink extends JavaPlugin {
 
         getEventRegistry().registerGlobal(PlayerChatEvent.class, listener::onChat);
 
+        registerEcsEvent(DiscoverZoneEvent.Display.class, listener::onZoneDiscover);
+        registerEcsEvent(KillFeedEvent.KillerMessage.class, listener::onDeath);
+
         getLogger().at(Level.INFO).log("AetherLink events registered!");
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private <T> void registerEcsEvent(Class<T> eventClass, java.util.function.Consumer<T> handler) {
+        getEventRegistry().registerGlobal((Class) eventClass, (java.util.function.Consumer) handler);
     }
 
     private void registerCommands() {
@@ -305,6 +317,18 @@ public class Aetherlink extends JavaPlugin {
     }
 
     private String getHytaleMaxPlayers() {
+        try {
+            HytaleServerConfig serverConfig = HytaleServerConfig.load();
+            if (serverConfig == null) return "?";
+            int maxPlayers = serverConfig.getMaxPlayers();
+            if (maxPlayers > 0) return String.valueOf(maxPlayers);
+        } catch (Exception e) {
+            if (!warnedMissingMaxPlayers) {
+                warnedMissingMaxPlayers = true;
+                getLogger().at(Level.WARNING).withCause(e)
+                    .log("[AetherLink] Unable to read max players from HytaleServerConfig.");
+            }
+        }
         return "?";
     }
 

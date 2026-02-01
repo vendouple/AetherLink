@@ -3,6 +3,7 @@ package com.vendouple.aetherlink;
 import java.util.ArrayList;
 import java.util.List;
 
+// Configuration class for AetherLink
 public class AetherConfig {
     public String botToken = "YOUR_BOT_TOKEN_HERE";
 
