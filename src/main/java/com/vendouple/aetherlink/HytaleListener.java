@@ -28,7 +28,6 @@ public class HytaleListener {
         if (plugin.getMessages() == null) return;
         String name = event.getPlayerRef().getUsername();
         String message = plugin.getMessages().chat.leave.replace("{HytalePlayer}", name);
-        // Use webhook with player name for leave messages
         plugin.sendToDiscordViaWebhook(name, message);
     }
 
@@ -36,8 +35,6 @@ public class HytaleListener {
         String name = event.getSender().getUsername();
         String content = event.getContent();
         
-        // Send chat message via webhook with player's name
-        // The message content is sent directly, username comes from webhook
         plugin.sendToDiscordViaWebhook(name, content);
     }
 
@@ -47,22 +44,35 @@ public class HytaleListener {
                 .replace("{Message}", msg);
     }
 
-    public void onDeath(KillFeedEvent.KillerMessage event) {
+    public void onDeath(KillFeedEvent.DecedentMessage event) {
         AetherMessages messages = plugin.getMessages();
         if (messages == null || messages.chat == null) return;
 
-        String playerName = resolvePlayerName(event);
-        String reason = resolveDeathReason(event);
-
-        if (playerName == null || playerName.isBlank()) playerName = "A player";
-        if (reason == null || reason.isBlank()) reason = "Unknown";
+        Message message = event.getMessage();
+        String deathMessage = message != null ? message.getRawText() : null;
+        
+        String playerName = "A player";
+        if (deathMessage != null && !deathMessage.isBlank()) {
+            int spaceIndex = deathMessage.indexOf(' ');
+            if (spaceIndex > 0) {
+                playerName = deathMessage.substring(0, spaceIndex);
+            }
+        }
+        
+        if (deathMessage == null || deathMessage.isBlank()) {
+            deathMessage = "Unknown cause";
+        }
 
         String formatted = messages.chat.death
             .replace("{HytalePlayer}", playerName)
-            .replace("{DeathReason}", reason);
+            .replace("{DeathReason}", deathMessage);
 
-        // Use webhook with player name for death messages
         plugin.sendToDiscordViaWebhook(playerName, formatted);
+    }
+
+
+    public void onKill(KillFeedEvent.KillerMessage event) {
+        // NOt needed, can be added tho
     }
 
     public void onZoneDiscover(DiscoverZoneEvent.Display event) {
@@ -87,30 +97,7 @@ public class HytaleListener {
             .replace("{HytalePlayer}", playerName)
             .replace("{ZoneUnlock}", zoneName);
 
-        // Use webhook with player name for advancement messages
         plugin.sendToDiscordViaWebhook(playerName, formatted);
-    }
-
-    private String resolvePlayerName(KillFeedEvent.KillerMessage event) {
-        if (event == null) return null;
-        var targetRef = event.getTargetRef();
-        if (targetRef == null || targetRef.getStore() == null) return null;
-        var store = targetRef.getStore();
-        PlayerRef playerRef = store.getComponent(targetRef, PlayerRef.getComponentType());
-        return playerRef != null ? playerRef.getUsername() : null;
-    }
-
-    private String resolveDeathReason(KillFeedEvent.KillerMessage event) {
-        if (event == null) return null;
-        Message message = event.getMessage();
-        if (message == null && event.getDamage() != null && event.getTargetRef() != null && event.getTargetRef().getStore() != null) {
-            try {
-                message = event.getDamage().getDeathMessage(event.getTargetRef(), event.getTargetRef().getStore());
-            } catch (Exception ignored) {
-                // ignore and fall back
-            }
-        }
-        return message != null ? message.getRawText() : null;
     }
 
     private String resolveSingleOnlinePlayerName() {

@@ -155,7 +155,6 @@ public class Aetherlink extends JavaPlugin {
      */
     private void generateAndLogInviteLink(JDA discord) {
         try {
-            // Required permissions for AetherLink
             String inviteUrl = discord.getInviteUrl(
                 Permission.VIEW_CHANNEL,
                 Permission.MESSAGE_SEND,
@@ -174,7 +173,6 @@ public class Aetherlink extends JavaPlugin {
         if (config == null) return;
 
         int configCooldown = config.spamControl.discordCooldownSeconds;
-        // -1 or 0 means disabled in config, so we do nothing
         if (configCooldown <= 0) return; 
 
         for (AetherConfig.ChannelConfig channelCfg : config.getChannelConfigs()) {
@@ -185,16 +183,13 @@ public class Aetherlink extends JavaPlugin {
 
             int currentSlowmode = channel.getSlowmode();
 
-            // LOGIC: Only act if Config requires MORE restriction than currently exists
             if (configCooldown > currentSlowmode) {
                  var self = channel.getGuild().getSelfMember();
 
-                 // Check permission first
                  if (self.hasPermission(channel, Permission.MANAGE_CHANNEL)) {
                      channel.getManager().setSlowmode(configCooldown).queue();
                      getLogger().at(Level.INFO).log("[AetherLink] Enforced " + configCooldown + "s slowmode in #" + channel.getName());
                  } else {
-                     // WARN because we WANTED to set it but COULDN'T
                      getLogger().at(Level.WARNING).log("--------------------------------------------------");
                      getLogger().at(Level.WARNING).log("[AetherLink] SECURITY WARNING");
                      getLogger().at(Level.WARNING).log("Cannot enforce slowmode in channel: #" + channel.getName());
@@ -221,7 +216,7 @@ public class Aetherlink extends JavaPlugin {
         getEventRegistry().registerGlobal(PlayerChatEvent.class, listener::onChat);
 
         registerEcsEvent(DiscoverZoneEvent.Display.class, listener::onZoneDiscover);
-        registerEcsEvent(KillFeedEvent.KillerMessage.class, listener::onDeath);
+        registerEcsEvent(KillFeedEvent.DecedentMessage.class, listener::onDeath);
 
         getLogger().at(Level.INFO).log("AetherLink events registered!");
     }
@@ -445,13 +440,8 @@ public class Aetherlink extends JavaPlugin {
         }
     }
 
-    /**
-     * Sends a message via webhook URL directly.
-     * Public for use by DiscordListener for cross-channel sync.
-     */
     public void sendViaWebhookUrl(String webhookUrl, String username, String message) {
         try {
-            // Use WebhookClient utility to send message with custom username and avatar
             net.dv8tion.jda.api.entities.WebhookClient client = 
                 net.dv8tion.jda.api.entities.WebhookClient.createClient(jda, webhookUrl);
             client.sendMessage(message)
@@ -463,18 +453,13 @@ public class Aetherlink extends JavaPlugin {
         }
     }
 
-    /**
-     * Sends a message via channel webhook, creating one if necessary.
-     */
     private void sendViaChannelWebhook(TextChannel channel, String username, String message) {
         var selfMember = channel.getGuild().getSelfMember();
         if (!selfMember.hasPermission(channel, Permission.MANAGE_WEBHOOKS)) {
-            // Fallback to regular message if no webhook permission
             channel.sendMessage("**" + username + "**: " + message).queue();
             return;
         }
 
-        // Look for existing AetherLink webhook
         channel.retrieveWebhooks().queue(webhooks -> {
             Webhook existingHook = null;
             for (Webhook hook : webhooks) {
@@ -487,7 +472,6 @@ public class Aetherlink extends JavaPlugin {
             if (existingHook != null) {
                 sendWebhookMessage(existingHook, username, message);
             } else {
-                // Create a new webhook
                 channel.createWebhook("AetherLink-Bridge").queue(
                     hook -> sendWebhookMessage(hook, username, message),
                     error -> {
@@ -504,9 +488,6 @@ public class Aetherlink extends JavaPlugin {
         });
     }
 
-    /**
-     * Sends a message through a webhook with custom username.
-     */
     private void sendWebhookMessage(Webhook webhook, String username, String message) {
         try {
             webhook.sendMessage(message)
@@ -518,23 +499,14 @@ public class Aetherlink extends JavaPlugin {
         }
     }
 
-    /**
-     * Generates a placeholder avatar URL based on username.
-     * Uses Discord's default avatar system or a placeholder service.
-     */
+
     private String getPlaceholderAvatarUrl(String username) {
-        // Use a placeholder avatar service or Discord's default avatar
-        // Using ui-avatars.com as a simple placeholder
         if (username == null || username.isBlank()) {
             return "https://ui-avatars.com/api/?name=Player&background=random";
         }
         return "https://ui-avatars.com/api/?name=" + java.net.URLEncoder.encode(username, java.nio.charset.StandardCharsets.UTF_8) + "&background=random";
     }
 
-    /**
-     * Sends a message to Discord channels via webhook with callback for message tracking.
-     * Note: Webhook messages don't return standard Message objects, so callback is limited.
-     */
     public void sendToDiscordViaWebhookCallback(String username, String message, Runnable callback) {
         if (message == null || message.isBlank() || jda == null) return;
         AetherConfig config = getConfig();
@@ -558,7 +530,6 @@ public class Aetherlink extends JavaPlugin {
             if (!cfg.enabled || cfg.readOnly) continue;
             net.dv8tion.jda.api.entities.channel.concrete.TextChannel ch = jda.getTextChannelById(cfg.channelId);
             if (ch != null) {
-                // Queue with success callback
                 ch.sendMessage(message).queue(callback); 
             }
         }
@@ -570,7 +541,6 @@ public class Aetherlink extends JavaPlugin {
             if (!cfg.enabled || cfg.readOnly) continue;
             net.dv8tion.jda.api.entities.channel.concrete.TextChannel ch = jda.getTextChannelById(cfg.channelId);
             if (ch != null) {
-                // Retrieve message by ID and edit it
                 ch.retrieveMessageById(messageId).queue(msg -> {
                     msg.editMessage(newContent).queue();
                 }, failure -> { /* Message might have been deleted, ignore */ });
