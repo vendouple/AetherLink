@@ -94,7 +94,8 @@ public class DiscordListener extends ListenerAdapter {
                         .replace("{Message}", content)
                         .replace("{TopDiscordRoleInitials1}", roleInitial);
 
-                    targetChannel.sendMessage(discordToDiscord).queue();
+                    // Use webhook for cross-channel sync with display name
+                    plugin.sendToDiscordViaWebhook("[" + channel.getName() + "] " + displayName, content);
                 }
             }
         }

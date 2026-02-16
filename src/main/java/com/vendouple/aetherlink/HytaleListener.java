@@ -8,11 +8,9 @@ import com.hypixel.hytale.server.core.modules.entity.damage.event.KillFeedEvent;
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.Universe;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class HytaleListener {
     private final Aetherlink plugin;
-    private final ConcurrentHashMap<String, LastMessageInfo> lastMessages = new ConcurrentHashMap<>();
 
     public HytaleListener(Aetherlink plugin) {
         this.plugin = plugin;
@@ -21,45 +19,26 @@ public class HytaleListener {
     public void onJoin(PlayerConnectEvent event) {
         if (plugin.getMessages() == null) return;
         String name = event.getPlayerRef().getUsername();
-        plugin.sendToDiscordChannels(plugin.getMessages().chat.join.replace("{HytalePlayer}", name));
+        String message = plugin.getMessages().chat.join.replace("{HytalePlayer}", name);
+        // Use webhook with player name for join messages
+        plugin.sendToDiscordViaWebhook(name, message);
     }
 
     public void onQuit(PlayerDisconnectEvent event) {
         if (plugin.getMessages() == null) return;
         String name = event.getPlayerRef().getUsername();
-        plugin.sendToDiscordChannels(plugin.getMessages().chat.leave.replace("{HytalePlayer}", name));
+        String message = plugin.getMessages().chat.leave.replace("{HytalePlayer}", name);
+        // Use webhook with player name for leave messages
+        plugin.sendToDiscordViaWebhook(name, message);
     }
 
     public void onChat(PlayerChatEvent event) {
         String name = event.getSender().getUsername();
         String content = event.getContent();
         
-        AetherConfig config = plugin.getConfig();
-        int aggregateWindow = config.spamControl.hytaleAggregateSeconds;
-
-        // Unique key for this player + this specific message content
-        String key = name + ":" + content;
-        long now = System.currentTimeMillis();
-
-        LastMessageInfo lastInfo = lastMessages.get(key);
-
-        // Is this a duplicate sent within the time window?
-        if (lastInfo != null && (now - lastInfo.timestamp) < (aggregateWindow * 1000L)) {
-            lastInfo.count++;
-            lastInfo.timestamp = now; 
-            
-            String editedMsg = formatMessage(name, content + " (" + lastInfo.count + "x)");
-            
-            plugin.editDiscordMessage(lastInfo.discordMsgId, editedMsg);
-        } else {
-            String formatted = formatMessage(name, content);
-            
-            plugin.sendToDiscordChannelsCallback(formatted, (sentMsg) -> {
-                if (sentMsg != null) {
-                    lastMessages.put(key, new LastMessageInfo(sentMsg.getId(), now));
-                }
-            });
-        }
+        // Send chat message via webhook with player's name
+        // The message content is sent directly, username comes from webhook
+        plugin.sendToDiscordViaWebhook(name, content);
     }
 
     private String formatMessage(String player, String msg) {
@@ -82,7 +61,8 @@ public class HytaleListener {
             .replace("{HytalePlayer}", playerName)
             .replace("{DeathReason}", reason);
 
-        plugin.sendToDiscordChannels(formatted);
+        // Use webhook with player name for death messages
+        plugin.sendToDiscordViaWebhook(playerName, formatted);
     }
 
     public void onZoneDiscover(DiscoverZoneEvent.Display event) {
@@ -107,7 +87,8 @@ public class HytaleListener {
             .replace("{HytalePlayer}", playerName)
             .replace("{ZoneUnlock}", zoneName);
 
-        plugin.sendToDiscordChannels(formatted);
+        // Use webhook with player name for advancement messages
+        plugin.sendToDiscordViaWebhook(playerName, formatted);
     }
 
     private String resolvePlayerName(KillFeedEvent.KillerMessage event) {
@@ -139,18 +120,5 @@ public class HytaleListener {
         if (players == null || players.isEmpty()) return "A player";
         if (players.size() == 1) return players.get(0).getUsername();
         return "A player";
-    }
-
-    // simple data holder
-    private static class LastMessageInfo {
-        String discordMsgId;
-        long timestamp;
-        int count;
-
-        public LastMessageInfo(String msgId, long timestamp) {
-            this.discordMsgId = msgId;
-            this.timestamp = timestamp;
-            this.count = 1;
-        }
     }
 }

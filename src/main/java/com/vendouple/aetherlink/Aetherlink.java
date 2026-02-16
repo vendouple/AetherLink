@@ -25,6 +25,7 @@ import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.Webhook;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 
 @SuppressWarnings("null")
@@ -100,6 +101,17 @@ public class Aetherlink extends JavaPlugin {
             return;
         }
 
+        // Check if bot is in any guilds
+        var guilds = discord.getGuilds();
+        if (guilds == null || guilds.isEmpty()) {
+            getLogger().at(Level.WARNING).log("--------------------------------------------------");
+            getLogger().at(Level.WARNING).log("[AetherLink] Bot is not in any Discord servers!");
+            getLogger().at(Level.WARNING).log("[AetherLink] Invite the bot to your server using this link:");
+            generateAndLogInviteLink(discord);
+            getLogger().at(Level.WARNING).log("--------------------------------------------------");
+            return;
+        }
+
         var channels = configManager.getConfig().getChannelConfigs();
         if (channels == null || channels.isEmpty()) {
             getLogger().at(Level.WARNING).log("[AetherLink] No Discord channels configured in config.json.");
@@ -123,11 +135,37 @@ public class Aetherlink extends JavaPlugin {
             }
 
             var selfMember = channel.getGuild().getSelfMember();
+            // Check basic permissions
             if (!selfMember.hasPermission(channel, Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND)) {
                 getLogger().at(Level.SEVERE).log("[AetherLink] Missing permissions in #" + channel.getName()
                     + " (Guild: " + channel.getGuild().getName() + ")"
                     + " - Required: VIEW_CHANNEL, MESSAGE_SEND");
             }
+            // Check webhook permission for immersive mode
+            if (!selfMember.hasPermission(channel, Permission.MANAGE_WEBHOOKS)) {
+                getLogger().at(Level.WARNING).log("[AetherLink] Missing MANAGE_WEBHOOKS permission in #" + channel.getName()
+                    + " (Guild: " + channel.getGuild().getName() + ")"
+                    + " - Webhook mode will fall back to regular messages.");
+            }
+        }
+    }
+
+    /**
+     * Generates and logs an invite link with the required permissions.
+     */
+    private void generateAndLogInviteLink(JDA discord) {
+        try {
+            // Required permissions for AetherLink
+            String inviteUrl = discord.getInviteUrl(
+                Permission.VIEW_CHANNEL,
+                Permission.MESSAGE_SEND,
+                Permission.MANAGE_CHANNEL,
+                Permission.MANAGE_WEBHOOKS,
+                Permission.MESSAGE_MANAGE
+            );
+            getLogger().at(Level.WARNING).log("[AetherLink] Invite URL: " + inviteUrl);
+        } catch (Exception e) {
+            getLogger().at(Level.WARNING).withCause(e).log("[AetherLink] Failed to generate invite link");
         }
     }
 
@@ -381,6 +419,139 @@ public class Aetherlink extends JavaPlugin {
             channel.sendMessage(message).queue();
         }
     }
+
+    /**
+     * Sends a message to Discord channels via webhook with a custom username.
+     * Uses a placeholder avatar since player avatars cannot be generated.
+     * Automatically creates webhooks for channels if needed.
+     */
+    public void sendToDiscordViaWebhook(String username, String message) {
+        if (message == null || message.isBlank() || jda == null) return;
+        AetherConfig config = getConfig();
+        if (config == null || config.getChannelConfigs() == null) return;
+
+        for (AetherConfig.ChannelConfig cfg : config.getChannelConfigs()) {
+            if (cfg == null || !cfg.enabled) continue;
+            if (cfg.channelId == null || cfg.channelId.isBlank()) continue;
+
+            TextChannel channel = jda.getTextChannelById(cfg.channelId);
+            if (channel == null) {
+                getLogger().at(Level.WARNING).log("[AetherLink] Channel not found or bot lacks access: " + cfg.channelId);
+                continue;
+            }
+
+            // Automatically find or create a webhook in the channel
+            sendViaChannelWebhook(channel, username, message);
+        }
+    }
+
+    /**
+     * Sends a message via webhook URL directly.
+     * Public for use by DiscordListener for cross-channel sync.
+     */
+    public void sendViaWebhookUrl(String webhookUrl, String username, String message) {
+        try {
+            // Use WebhookClient utility to send message with custom username and avatar
+            net.dv8tion.jda.api.entities.WebhookClient client = 
+                net.dv8tion.jda.api.entities.WebhookClient.createClient(jda, webhookUrl);
+            client.sendMessage(message)
+                .setUsername(username)
+                .setAvatarUrl(getPlaceholderAvatarUrl(username))
+                .queue();
+        } catch (Exception e) {
+            getLogger().at(Level.WARNING).withCause(e).log("[AetherLink] Failed to send via webhook URL");
+        }
+    }
+
+    /**
+     * Sends a message via channel webhook, creating one if necessary.
+     */
+    private void sendViaChannelWebhook(TextChannel channel, String username, String message) {
+        var selfMember = channel.getGuild().getSelfMember();
+        if (!selfMember.hasPermission(channel, Permission.MANAGE_WEBHOOKS)) {
+            // Fallback to regular message if no webhook permission
+            channel.sendMessage("**" + username + "**: " + message).queue();
+            return;
+        }
+
+        // Look for existing AetherLink webhook
+        channel.retrieveWebhooks().queue(webhooks -> {
+            Webhook existingHook = null;
+            for (Webhook hook : webhooks) {
+                if (hook.getName() != null && hook.getName().contains("AetherLink")) {
+                    existingHook = hook;
+                    break;
+                }
+            }
+
+            if (existingHook != null) {
+                sendWebhookMessage(existingHook, username, message);
+            } else {
+                // Create a new webhook
+                channel.createWebhook("AetherLink-Bridge").queue(
+                    hook -> sendWebhookMessage(hook, username, message),
+                    error -> {
+                        getLogger().at(Level.WARNING).withCause(error)
+                            .log("[AetherLink] Failed to create webhook, falling back to regular message");
+                        channel.sendMessage("**" + username + "**: " + message).queue();
+                    }
+                );
+            }
+        }, error -> {
+            getLogger().at(Level.WARNING).withCause(error)
+                .log("[AetherLink] Failed to retrieve webhooks, falling back to regular message");
+            channel.sendMessage("**" + username + "**: " + message).queue();
+        });
+    }
+
+    /**
+     * Sends a message through a webhook with custom username.
+     */
+    private void sendWebhookMessage(Webhook webhook, String username, String message) {
+        try {
+            webhook.sendMessage(message)
+                .setUsername(username)
+                .setAvatarUrl(getPlaceholderAvatarUrl(username))
+                .queue();
+        } catch (Exception e) {
+            getLogger().at(Level.WARNING).withCause(e).log("[AetherLink] Failed to send webhook message");
+        }
+    }
+
+    /**
+     * Generates a placeholder avatar URL based on username.
+     * Uses Discord's default avatar system or a placeholder service.
+     */
+    private String getPlaceholderAvatarUrl(String username) {
+        // Use a placeholder avatar service or Discord's default avatar
+        // Using ui-avatars.com as a simple placeholder
+        if (username == null || username.isBlank()) {
+            return "https://ui-avatars.com/api/?name=Player&background=random";
+        }
+        return "https://ui-avatars.com/api/?name=" + java.net.URLEncoder.encode(username, java.nio.charset.StandardCharsets.UTF_8) + "&background=random";
+    }
+
+    /**
+     * Sends a message to Discord channels via webhook with callback for message tracking.
+     * Note: Webhook messages don't return standard Message objects, so callback is limited.
+     */
+    public void sendToDiscordViaWebhookCallback(String username, String message, Runnable callback) {
+        if (message == null || message.isBlank() || jda == null) return;
+        AetherConfig config = getConfig();
+        if (config == null || config.getChannelConfigs() == null) return;
+
+        for (AetherConfig.ChannelConfig cfg : config.getChannelConfigs()) {
+            if (cfg == null || !cfg.enabled) continue;
+            if (cfg.channelId == null || cfg.channelId.isBlank()) continue;
+
+            TextChannel channel = jda.getTextChannelById(cfg.channelId);
+            if (channel == null) continue;
+
+            sendViaChannelWebhook(channel, username, message);
+            if (callback != null) callback.run();
+        }
+    }
+
         public void sendToDiscordChannelsCallback(String message, java.util.function.Consumer<net.dv8tion.jda.api.entities.Message> callback) {
         if (jda == null || message == null) return;
         for (AetherConfig.ChannelConfig cfg : getConfig().getChannelConfigs()) {
