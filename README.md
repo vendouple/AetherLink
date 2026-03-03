@@ -1,4 +1,6 @@
 # AetherLink
+> [!IMPORTANT]  
+> This project is in a stale state. Meaning further major updates have been slowed to a crawl and will be recieving support slower than usual, this is because of less time managing multiple projects currently and other work. I will continue development once there is more time. Thanks for your understanding!
 
 ### License
 
